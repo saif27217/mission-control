@@ -29,6 +29,8 @@
 
 const http = require('http');
 const WebSocket = require('ws');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = 8080;
 
@@ -42,6 +44,21 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     res.end();
+    return;
+  }
+
+  // Serve the HTML file
+  if (req.method === 'GET' && req.url === '/') {
+    const htmlPath = path.join(__dirname, 'mission-control.html');
+    fs.readFile(htmlPath, (err, data) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Error loading mission-control.html');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(data);
+    });
     return;
   }
 
@@ -130,12 +147,12 @@ function broadcast(data) {
 }
 
 // 3. Start listening
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`
   Mission Control Backend Running
   -------------------------------
-  PORT:      ${PORT}
-  WS:        ws://localhost:${PORT}
-  POST:      http://localhost:${PORT}/telemetry
+  Dashboard: http://76.13.243.223:${PORT}
+  WS:        ws://76.13.243.223:${PORT}
+  POST:      http://76.13.243.223:${PORT}/telemetry
   `);
 });
